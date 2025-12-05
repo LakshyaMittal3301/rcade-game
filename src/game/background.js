@@ -1,21 +1,28 @@
 import { GAME_HEIGHT, GAME_WIDTH, GROUND_HEIGHT } from '../constants.js'
 
 export class Background {
-  constructor(image) {
-    this.image = image
+  constructor(imageOrVideo) {
+    this.imageOrVideo = imageOrVideo
   }
 
   draw(ctx) {
+    if (!this.imageOrVideo) return
     ctx.save()
     const targetHeight = GAME_HEIGHT - GROUND_HEIGHT
-    const scale = targetHeight / this.image.height
-    const tileWidth = Math.ceil(this.image.width * scale)
-    const tiles = Math.ceil(GAME_WIDTH / tileWidth) + 2
+    const sourceW = this.imageOrVideo.videoWidth || this.imageOrVideo.width
+    const sourceH = this.imageOrVideo.videoHeight || this.imageOrVideo.height
+    // Slightly smaller scale so we tile more copies across
+    const scale = (targetHeight / sourceH) * 0.65
+    const tileSize = Math.ceil(sourceW * scale)
+    const cols = Math.ceil(GAME_WIDTH / tileSize) + 2
+    const rows = Math.ceil(targetHeight / tileSize) + 2
 
-    // Slight overlap to hide seams between tiles
-    for (let i = -1; i < tiles; i++) {
-      const x = i * tileWidth
-      ctx.drawImage(this.image, x, 0, tileWidth + 1, targetHeight)
+    for (let row = -1; row < rows; row++) {
+      for (let col = -1; col < cols; col++) {
+        const x = col * tileSize
+        const y = row * tileSize
+        ctx.drawImage(this.imageOrVideo, x, y, tileSize + 1, tileSize + 1)
+      }
     }
     ctx.restore()
   }

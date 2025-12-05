@@ -1,11 +1,24 @@
 import './style.css'
-import birdUpSrc from './assets/birds/yellowbird-upflap.png'
-import birdMidSrc from './assets/birds/yellowbird-midflap.png'
-import birdDownSrc from './assets/birds/yellowbird-downflap.png'
+import nyanFrame0 from './assets/nyan-cat/frame_00_delay-0.07s.gif'
+import nyanFrame1 from './assets/nyan-cat/frame_01_delay-0.07s.gif'
+import nyanFrame2 from './assets/nyan-cat/frame_02_delay-0.07s.gif'
+import nyanFrame3 from './assets/nyan-cat/frame_03_delay-0.07s.gif'
+import nyanFrame4 from './assets/nyan-cat/frame_04_delay-0.07s.gif'
+import nyanFrame5 from './assets/nyan-cat/frame_05_delay-0.07s.gif'
+import nyanFrame6 from './assets/nyan-cat/frame_06_delay-0.07s.gif'
+import nyanFrame7 from './assets/nyan-cat/frame_07_delay-0.07s.gif'
+import nyanFrame8 from './assets/nyan-cat/frame_08_delay-0.07s.gif'
+import nyanFrame9 from './assets/nyan-cat/frame_09_delay-0.07s.gif'
+import nyanFrame10 from './assets/nyan-cat/frame_10_delay-0.07s.gif'
+import nyanFrame11 from './assets/nyan-cat/frame_11_delay-0.07s.gif'
+import trailFrame0 from './assets/nyan-trails/frame_0_delay-0.07s.gif'
+import trailFrame1 from './assets/nyan-trails/frame_1_delay-0.07s.gif'
+import trailFrame2 from './assets/nyan-trails/frame_2_delay-0.07s.gif'
+import trailFrame3 from './assets/nyan-trails/frame_3_delay-0.07s.gif'
 import pipeSrc from './assets/pipe/pipe-green.png'
 import messageSrc from './assets/message/message.png'
 import gameOverSrc from './assets/message/gameover.png'
-import bgSrc from './assets/background/background-day.png'
+import bgVideoSrc from './assets/nyan-bg/nyan-bg.mp4'
 import baseSrc from './assets/background/base.png'
 import wingSrc from './assets/sounds/wing.ogg'
 import pointSrc from './assets/sounds/point.ogg'
@@ -28,14 +41,39 @@ async function init() {
   app.innerHTML = ''
   app.appendChild(canvas)
 
-  const [frames, pipeImage, messageImage, gameOverImage, bgImage, baseImage] = await Promise.all([
-    loadImages([birdUpSrc, birdMidSrc, birdDownSrc]),
-    loadImages([pipeSrc]),
-    loadImage(messageSrc),
-    loadImage(gameOverSrc),
-    loadImage(bgSrc),
-    loadImage(baseSrc),
-  ])
+  const nyanSources = [
+    nyanFrame0,
+    nyanFrame1,
+    nyanFrame2,
+    nyanFrame3,
+    nyanFrame4,
+    nyanFrame5,
+    nyanFrame6,
+    nyanFrame7,
+    nyanFrame8,
+    nyanFrame9,
+    nyanFrame10,
+    nyanFrame11,
+  ]
+
+  const trailSources = [trailFrame0, trailFrame1, trailFrame2, trailFrame3]
+
+  const [nyanFrames, trailFrames, pipeImage, messageImage, gameOverImage, baseImage] =
+    await Promise.all([
+      loadImages(nyanSources),
+      loadImages(trailSources),
+      loadImages([pipeSrc]),
+      loadImage(messageSrc),
+      loadImage(gameOverSrc),
+      loadImage(baseSrc),
+    ])
+
+  const bgVideo = document.createElement('video')
+  bgVideo.src = bgVideoSrc
+  bgVideo.muted = true
+  bgVideo.loop = true
+  bgVideo.playsInline = true
+  await bgVideo.play().catch(() => {})
 
   const sounds = new SoundManager({
     wing: wingSrc,
@@ -44,15 +82,19 @@ async function init() {
     swoosh: swooshSrc,
   })
 
-  const bird = new Bird(frames, {
+  const bird = new Bird(nyanFrames, {
     y: GAME_HEIGHT * 0.35,
+    scale: 1.05,
+    trailFrames,
+    trailScale: 1.05,
+    trailOffsetX: -18,
   })
 
   const pipes = new PipeSystem(pipeImage[0], {
     scale: 0.96,
     scoreOffset: PIPE_SCORE_OFFSET,
   })
-  const background = new Background(bgImage)
+  const background = new Background(bgVideo)
   const base = new Base(baseImage, PIPE_SPEED)
   const state = new GameState({ bird, pipes, base })
 

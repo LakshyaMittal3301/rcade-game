@@ -1,7 +1,7 @@
 import { GAME_HEIGHT, GAME_WIDTH, GROUND_HEIGHT } from '../constants.js'
 
 const DEFAULTS = {
-  frameDuration: 0.12,
+  frameDuration: 0.06,
   idleBobAmplitude: 6,
   idleBobSpeed: 2,
   scale: 0.86, // ~10% smaller than previous
@@ -11,6 +11,7 @@ const DEFAULTS = {
   maxRotationDeg: 60,
   collisionPaddingX: 3,
   collisionPaddingY: 2,
+  trailRepeatCount: 4,
 }
 
 const degToRad = (deg) => (deg * Math.PI) / 180
@@ -52,6 +53,24 @@ export class Bird {
     this.idleBaseY = this.y
     this.idlePhase = 0
     this.frozen = false
+
+    // Optional trailing animation (e.g., rainbow)
+    this.trailFrames = options.trailFrames ?? null
+    if (this.trailFrames && this.trailFrames.length > 0) {
+      this.trailFrameIndex = 0
+      this.trailFrameTimer = 0
+      this.trailFrameDuration = options.trailFrameDuration ?? this.frameDuration
+      const trailBase = this.trailFrames[0]
+      this.trailScale = options.trailScale ?? this.scale
+      this.trailWidth = trailBase.width * this.trailScale
+      this.trailHeight = trailBase.height * this.trailScale
+      this.trailOffsetX =
+        options.trailOffsetX ?? -(this.drawWidth * 0.9 + this.trailWidth * 0.2)
+      this.trailOffsetY = options.trailOffsetY ?? 0
+      this.trailRepeatCount = options.trailRepeatCount ?? DEFAULTS.trailRepeatCount
+      this.trailSpacing =
+        options.trailSpacing ?? -(this.trailWidth * 0.85) // negative = to the left
+    }
   }
 
   update(dt) {
@@ -62,6 +81,14 @@ export class Bird {
     if (this.frameTimer >= this.frameDuration) {
       this.frameTimer -= this.frameDuration
       this.frameIndex = (this.frameIndex + 1) % this.frames.length
+    }
+
+    if (this.trailFrames && this.trailFrames.length > 1) {
+      this.trailFrameTimer += dt
+      if (this.trailFrameTimer >= this.trailFrameDuration) {
+        this.trailFrameTimer -= this.trailFrameDuration
+        this.trailFrameIndex = (this.trailFrameIndex + 1) % this.trailFrames.length
+      }
     }
 
     if (this.physicsEnabled) {
@@ -80,7 +107,7 @@ export class Bird {
         this.vy = 0
       }
 
-      // Tilt bird based on vertical speed
+      // Tilt based on velocity
       this.rotation = clamp(
         this.vy * this.rotationFactor,
         -this.maxRotation,
@@ -102,6 +129,24 @@ export class Bird {
     const sprite = this.frames[this.frameIndex]
     ctx.save()
     ctx.translate(this.x, this.y)
+
+    // Draw trails without rotation so the ribbon stays horizontal
+    if (this.trailFrames && this.trailFrames.length > 0) {
+      const trailSprite = this.trailFrames[this.trailFrameIndex]
+      for (let i = 0; i < this.trailRepeatCount; i += 1) {
+        const offsetX = this.trailOffsetX + this.trailSpacing * i
+        ctx.drawImage(
+          trailSprite,
+          -this.trailWidth / 2 + offsetX,
+          -this.trailHeight / 2 + this.trailOffsetY,
+          this.trailWidth,
+          this.trailHeight
+        )
+      }
+    }
+
+    // Draw cat with its rotation
+    ctx.save()
     ctx.rotate(this.rotation)
     ctx.drawImage(
       sprite,
@@ -110,6 +155,8 @@ export class Bird {
       this.drawWidth,
       this.drawHeight
     )
+    ctx.restore()
+
     ctx.restore()
   }
 
