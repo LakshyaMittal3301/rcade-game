@@ -15,7 +15,8 @@ import trailFrame0 from './assets/nyan-trails/frame_0_delay-0.07s.gif'
 import trailFrame1 from './assets/nyan-trails/frame_1_delay-0.07s.gif'
 import trailFrame2 from './assets/nyan-trails/frame_2_delay-0.07s.gif'
 import trailFrame3 from './assets/nyan-trails/frame_3_delay-0.07s.gif'
-import pipeSrc from './assets/pipe/pipe-green.png'
+import pipeGreenSrc from './assets/pipe/pipe-green.png'
+import pipeRedSrc from './assets/pipe/pipe-red.png'
 import messageSrc from './assets/message/message.png'
 import gameOverSrc from './assets/message/gameover.png'
 import bgVideoSrc from './assets/nyan-bg/nyan-bg.mp4'
@@ -58,11 +59,12 @@ async function init() {
 
   const trailSources = [trailFrame0, trailFrame1, trailFrame2, trailFrame3]
 
-  const [nyanFrames, trailFrames, pipeImage, messageImage, gameOverImage, baseImage] =
+  const [nyanFrames, trailFrames, pipeGreen, pipeRed, messageImage, gameOverImage, baseImage] =
     await Promise.all([
       loadImages(nyanSources),
       loadImages(trailSources),
-      loadImages([pipeSrc]),
+      loadImages([pipeGreenSrc]),
+      loadImages([pipeRedSrc]),
       loadImage(messageSrc),
       loadImage(gameOverSrc),
       loadImage(baseSrc),
@@ -74,6 +76,7 @@ async function init() {
   bgVideo.loop = true
   bgVideo.playsInline = true
   await bgVideo.play().catch(() => {})
+
 
   const sounds = new SoundManager({
     wing: wingSrc,
@@ -90,9 +93,11 @@ async function init() {
     trailOffsetX: -18,
   })
 
-  const pipes = new PipeSystem(pipeImage[0], {
+  const pipes = new PipeSystem(pipeGreen[0], {
     scale: 0.96,
     scoreOffset: PIPE_SCORE_OFFSET,
+    altSprite: pipeRed[0],
+    altEvery: 10,
   })
   const background = new Background(bgVideo)
   const base = new Base(baseImage, PIPE_SPEED)
@@ -107,7 +112,9 @@ async function init() {
     createInputHandler({
       state,
       bird,
-      onStart: () => state.startRun(),
+      onStart: () => {
+        state.startRun()
+      },
       onRestart: () => {
         sounds.play('swoosh')
         state.resetToStart()

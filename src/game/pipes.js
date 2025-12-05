@@ -12,6 +12,8 @@ import {
 export class PipeSystem {
   constructor(pipeImage, options = {}) {
     this.pipeImage = pipeImage
+    this.altSprite = options.altSprite ?? null
+    this.altEvery = options.altEvery ?? null
     this.pipeWidth = pipeImage.width
     this.pipeHeight = pipeImage.height
     this.scale = options.scale ?? 1
@@ -26,6 +28,7 @@ export class PipeSystem {
     this.pipes = []
     this.timeSinceLastSpawn = 0
     this.active = true
+    this.spawnCount = 0
   }
 
   update(dt) {
@@ -49,6 +52,7 @@ export class PipeSystem {
   reset() {
     this.pipes = []
     this.timeSinceLastSpawn = 0
+    this.spawnCount = 0
   }
 
   spawnPipePair() {
@@ -57,12 +61,19 @@ export class PipeSystem {
     const minY = this.margin + gapSize / 2
     const gapY = randomInRange(minY, maxY)
 
+    const isAlt =
+      this.altEvery && this.altEvery > 0
+        ? this.spawnCount % this.altEvery === this.altEvery - 1
+        : false
+
     this.pipes.push({
       x: GAME_WIDTH + this.scaledWidth,
       gapY,
       gapSize,
       scored: false,
+      sprite: isAlt && this.altSprite ? this.altSprite : this.pipeImage,
     })
+    this.spawnCount += 1
   }
 
   draw(ctx) {
@@ -74,13 +85,13 @@ export class PipeSystem {
       ctx.save()
       ctx.translate(pipe.x + w / 2, topHeight)
       ctx.scale(1, -1)
-      ctx.drawImage(this.pipeImage, -w / 2, 0, w, topHeight)
+      ctx.drawImage(pipe.sprite ?? this.pipeImage, -w / 2, 0, w, topHeight)
       ctx.restore()
 
       // Bottom pipe
       const bottomY = pipe.gapY + pipe.gapSize / 2
       const bottomHeight = GAME_HEIGHT - GROUND_HEIGHT - bottomY
-      ctx.drawImage(this.pipeImage, pipe.x, bottomY, w, bottomHeight)
+      ctx.drawImage(pipe.sprite ?? this.pipeImage, pipe.x, bottomY, w, bottomHeight)
     })
   }
 
