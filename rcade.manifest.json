@@ -1,0 +1,16 @@
+{
+  "$schema": "https://rcade.dev/manifest.schema.json",
+  "name": "my-sample-game",
+  "display_name": "Sample Game",
+  "description": "Wohoooo",
+  "visibility": "private",
+  "authors": {
+    "display_name": "LakshyaMittal3301"
+  },
+  "dependencies": [
+    {
+      "name": "@rcade/input-classic",
+      "version": "1.0.0"
+    }
+  ]
+}
