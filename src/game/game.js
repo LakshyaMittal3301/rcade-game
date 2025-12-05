@@ -13,10 +13,20 @@ export class Game {
     this.inputHandler = null
     this.onCollision = null
     this.overlayRenderer = null
+    this.background = null
+    this.base = null
   }
 
   addEntity(entity) {
     this.entities.push(entity)
+  }
+
+  setBackground(bg) {
+    this.background = bg
+  }
+
+  setBase(base) {
+    this.base = base
   }
 
   setInputHandler(handler) {
@@ -53,6 +63,10 @@ export class Game {
       this.inputHandler(dt)
     }
 
+    if (this.base && this.base.update) {
+      this.base.update(dt)
+    }
+
     this.entities.forEach((entity) => {
       if (entity.update) entity.update(dt)
     })
@@ -66,18 +80,26 @@ export class Game {
     const ctx = this.ctx
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
-    // Background
-    ctx.fillStyle = '#0d1b2a'
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    // Background layer
+    if (this.background) {
+      this.background.draw(ctx)
+    } else {
+      ctx.fillStyle = '#0d1b2a'
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    }
 
     // Entities
     this.entities.forEach((entity) => {
       if (entity.draw) entity.draw(ctx)
     })
 
-    // Ground strip
-    ctx.fillStyle = '#1b263b'
-    ctx.fillRect(0, this.canvas.height - GROUND_HEIGHT, this.canvas.width, GROUND_HEIGHT)
+    // Base strip
+    if (this.base) {
+      this.base.draw(ctx)
+    } else {
+      ctx.fillStyle = '#1b263b'
+      ctx.fillRect(0, this.canvas.height - GROUND_HEIGHT, this.canvas.width, GROUND_HEIGHT)
+    }
 
     if (this.overlayRenderer) {
       this.overlayRenderer(ctx)

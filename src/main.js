@@ -5,12 +5,15 @@ import birdDownSrc from './assets/birds/yellowbird-downflap.png'
 import pipeSrc from './assets/pipe/pipe-green.png'
 import messageSrc from './assets/message/message.png'
 import gameOverSrc from './assets/message/gameover.png'
+import bgSrc from './assets/background/background-day.png'
+import baseSrc from './assets/background/base.png'
 import { PLAYER_1, SYSTEM } from '@rcade/plugin-input-classic'
 import { Game } from './game/game.js'
 import { Bird } from './game/bird.js'
 import { PipeSystem } from './game/pipes.js'
+import { Background, Base } from './game/background.js'
 import { loadImage, loadImages } from './utils/assets.js'
-import { GAME_HEIGHT, GAME_WIDTH, PIPE_SCORE_OFFSET } from './constants.js'
+import { GAME_HEIGHT, GAME_WIDTH, PIPE_SCORE_OFFSET, PIPE_SPEED } from './constants.js'
 
 const STATE_START = 'start'
 const STATE_PLAYING = 'playing'
@@ -22,11 +25,13 @@ async function init() {
   app.innerHTML = ''
   app.appendChild(canvas)
 
-  const [frames, pipeImage, messageImage, gameOverImage] = await Promise.all([
+  const [frames, pipeImage, messageImage, gameOverImage, bgImage, baseImage] = await Promise.all([
     loadImages([birdUpSrc, birdMidSrc, birdDownSrc]),
     loadImages([pipeSrc]),
     loadImage(messageSrc),
     loadImage(gameOverSrc),
+    loadImage(bgSrc),
+    loadImage(baseSrc),
   ])
 
   let gameState = STATE_START
@@ -41,6 +46,9 @@ async function init() {
     scale: 0.96,
     scoreOffset: PIPE_SCORE_OFFSET,
   })
+  const background = new Background(bgImage)
+  const base = new Base(baseImage, PIPE_SPEED)
+
   const resetToStart = () => {
     gameState = STATE_START
     score = 0
@@ -48,9 +56,12 @@ async function init() {
     pipes.active = false
     bird.reset(GAME_HEIGHT * 0.35)
     bird.setPhysicsEnabled(false)
+    base.setActive(false)
   }
 
   const game = new Game(canvas)
+  game.setBackground(background)
+  game.setBase(base)
   game.addEntity(bird)
   game.addEntity(pipes)
   game.setInputHandler(() => {
@@ -134,6 +145,7 @@ async function init() {
     gameState = STATE_PLAYING
     pipes.reset()
     pipes.active = true
+    base.setActive(true)
     bird.reset(GAME_HEIGHT * 0.35)
     bird.setPhysicsEnabled(true)
     bird.flap()
@@ -142,6 +154,7 @@ async function init() {
   function gameOver() {
     gameState = STATE_GAME_OVER
     pipes.active = false
+    base.setActive(false)
     bird.freeze()
     best = Math.max(best, score)
   }
