@@ -38,6 +38,9 @@ export class Bird {
 
     this.groundY = options.groundY ?? GAME_HEIGHT - GROUND_HEIGHT
     this.ceilingY = options.ceilingY ?? 0
+
+    this._halfW = this.drawWidth / 2
+    this._halfH = this.drawHeight / 2
   }
 
   update(dt) {
@@ -53,7 +56,7 @@ export class Bird {
     this.y += this.vy * dt
 
     // Constrain to world bounds
-    const halfH = this.drawHeight / 2
+    const halfH = this._halfH
     if (this.y + halfH >= this.groundY) {
       this.y = this.groundY - halfH
       this.vy = 0
@@ -88,6 +91,15 @@ export class Bird {
       this.drawHeight
     )
     ctx.restore()
+  }
+
+  getAABB() {
+    return {
+      x: this.x - this._halfW,
+      y: this.y - this._halfH,
+      w: this.drawWidth,
+      h: this.drawHeight,
+    }
   }
 }
 

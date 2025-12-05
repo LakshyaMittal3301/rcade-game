@@ -11,6 +11,7 @@ export class Game {
     this.running = false
     this.lastTimestamp = 0
     this.inputHandler = null
+    this.onCollision = null
   }
 
   addEntity(entity) {
@@ -19,6 +20,10 @@ export class Game {
 
   setInputHandler(handler) {
     this.inputHandler = handler
+  }
+
+  setCollisionHandler(handler) {
+    this.onCollision = handler
   }
 
   start() {
@@ -46,6 +51,10 @@ export class Game {
     this.entities.forEach((entity) => {
       if (entity.update) entity.update(dt)
     })
+
+    if (this.onCollision) {
+      this.onCollision()
+    }
   }
 
   render() {
@@ -64,5 +73,9 @@ export class Game {
     // Ground strip
     ctx.fillStyle = '#1b263b'
     ctx.fillRect(0, this.canvas.height - GROUND_HEIGHT, this.canvas.width, GROUND_HEIGHT)
+  }
+
+  stop() {
+    this.running = false
   }
 }
