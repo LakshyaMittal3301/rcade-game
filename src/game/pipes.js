@@ -25,9 +25,12 @@ export class PipeSystem {
 
     this.pipes = []
     this.timeSinceLastSpawn = 0
+    this.active = true
   }
 
   update(dt) {
+    if (!this.active) return
+
     this.timeSinceLastSpawn += dt
     if (this.timeSinceLastSpawn >= this.spawnInterval) {
       this.spawnPipePair()
@@ -41,6 +44,11 @@ export class PipeSystem {
     this.pipes = this.pipes.filter(
       (pipe) => pipe.x + this.scaledWidth > 0
     )
+  }
+
+  reset() {
+    this.pipes = []
+    this.timeSinceLastSpawn = 0
   }
 
   spawnPipePair() {

@@ -2,8 +2,8 @@ import { GAME_HEIGHT, GAME_WIDTH, GROUND_HEIGHT } from '../constants.js'
 
 const DEFAULTS = {
   frameDuration: 0.12,
-  bobAmplitude: 0,
-  bobSpeed: 0,
+  idleBobAmplitude: 6,
+  idleBobSpeed: 2,
   scale: 0.86, // ~10% smaller than previous
   gravity: 750, // px/s^2 (heavier fall)
   flapImpulse: -280, // px/s (snappier lift to match gravity)
@@ -45,6 +45,12 @@ export class Bird {
 
     this._halfW = this.drawWidth / 2
     this._halfH = this.drawHeight / 2
+
+    this.physicsEnabled = true
+    this.idleBobAmplitude = options.idleBobAmplitude ?? DEFAULTS.idleBobAmplitude
+    this.idleBobSpeed = options.idleBobSpeed ?? DEFAULTS.idleBobSpeed
+    this.idleBaseY = this.y
+    this.idlePhase = 0
   }
 
   update(dt) {
@@ -55,27 +61,34 @@ export class Bird {
       this.frameIndex = (this.frameIndex + 1) % this.frames.length
     }
 
-    // Apply gravity
-    this.vy += this.gravity * dt
-    this.y += this.vy * dt
+    if (this.physicsEnabled) {
+      // Apply gravity
+      this.vy += this.gravity * dt
+      this.y += this.vy * dt
 
-    // Constrain to world bounds
-    const halfH = this._halfH
-    if (this.y + halfH >= this.groundY) {
-      this.y = this.groundY - halfH
-      this.vy = 0
-    }
-    if (this.y - halfH <= this.ceilingY) {
-      this.y = this.ceilingY + halfH
-      this.vy = 0
-    }
+      // Constrain to world bounds
+      const halfH = this._halfH
+      if (this.y + halfH >= this.groundY) {
+        this.y = this.groundY - halfH
+        this.vy = 0
+      }
+      if (this.y - halfH <= this.ceilingY) {
+        this.y = this.ceilingY + halfH
+        this.vy = 0
+      }
 
-    // Tilt bird based on vertical speed
-    this.rotation = clamp(
-      this.vy * this.rotationFactor,
-      -this.maxRotation,
-      this.maxRotation
-    )
+      // Tilt bird based on vertical speed
+      this.rotation = clamp(
+        this.vy * this.rotationFactor,
+        -this.maxRotation,
+        this.maxRotation
+      )
+    } else {
+      // Idle bobbing without physics
+      this.idlePhase += dt * this.idleBobSpeed
+      this.y = this.idleBaseY + Math.sin(this.idlePhase) * this.idleBobAmplitude
+      this.rotation = 0
+    }
   }
 
   flap() {
@@ -104,6 +117,24 @@ export class Bird {
       w: this.drawWidth - this.collisionPaddingX * 2,
       h: this.drawHeight - this.collisionPaddingY * 2,
     }
+  }
+
+  setPhysicsEnabled(enabled) {
+    this.physicsEnabled = enabled
+    if (!enabled) {
+      this.idleBaseY = this.y
+      this.idlePhase = 0
+      this.vy = 0
+    }
+  }
+
+  reset(positionY = GAME_HEIGHT * 0.4) {
+    this.y = positionY
+    this.vy = 0
+    this.rotation = 0
+    this.physicsEnabled = false
+    this.idleBaseY = this.y
+    this.idlePhase = 0
   }
 }
 
