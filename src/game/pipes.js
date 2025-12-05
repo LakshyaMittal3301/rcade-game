@@ -15,11 +15,13 @@ export class PipeSystem {
     this.pipeWidth = pipeImage.width
     this.pipeHeight = pipeImage.height
     this.scale = options.scale ?? 1
+    this.scaledWidth = this.pipeWidth * this.scale
     this.speed = options.speed ?? PIPE_SPEED
     this.spawnInterval = options.spawnInterval ?? PIPE_SPAWN_INTERVAL
     this.gapMin = options.gapMin ?? PIPE_GAP_MIN
     this.gapMax = options.gapMax ?? PIPE_GAP_MAX
     this.margin = options.margin ?? PIPE_VERTICAL_MARGIN
+    this.scoreOffset = options.scoreOffset ?? 0
 
     this.pipes = []
     this.timeSinceLastSpawn = 0
@@ -37,7 +39,7 @@ export class PipeSystem {
     })
 
     this.pipes = this.pipes.filter(
-      (pipe) => pipe.x + this.pipeWidth * this.scale > 0
+      (pipe) => pipe.x + this.scaledWidth > 0
     )
   }
 
@@ -48,7 +50,7 @@ export class PipeSystem {
     const gapY = randomInRange(minY, maxY)
 
     this.pipes.push({
-      x: GAME_WIDTH + this.pipeWidth * this.scale,
+      x: GAME_WIDTH + this.scaledWidth,
       gapY,
       gapSize,
       scored: false,
@@ -56,7 +58,7 @@ export class PipeSystem {
   }
 
   draw(ctx) {
-    const w = this.pipeWidth * this.scale
+    const w = this.scaledWidth
 
     this.pipes.forEach((pipe) => {
       // Top pipe (flipped)
@@ -77,7 +79,7 @@ export class PipeSystem {
   collidesWith(bird) {
     const birdBox = bird.getAABB()
     return this.pipes.some((pipe) => {
-      const w = this.pipeWidth * this.scale
+      const w = this.scaledWidth
       const topHeight = pipe.gapY - pipe.gapSize / 2
       const bottomY = pipe.gapY + pipe.gapSize / 2
       const topRect = { x: pipe.x, y: 0, w, h: topHeight }
@@ -89,6 +91,18 @@ export class PipeSystem {
       }
       return rectsOverlap(birdBox, topRect) || rectsOverlap(birdBox, bottomRect)
     })
+  }
+
+  scoreIfPassed(bird) {
+    const w = this.scaledWidth
+    let gained = 0
+    this.pipes.forEach((pipe) => {
+      if (!pipe.scored && bird.x > pipe.x + w - this.scoreOffset) {
+        pipe.scored = true
+        gained += 1
+      }
+    })
+    return gained
   }
 }
 

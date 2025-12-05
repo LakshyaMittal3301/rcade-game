@@ -12,6 +12,7 @@ export class Game {
     this.lastTimestamp = 0
     this.inputHandler = null
     this.onCollision = null
+    this.overlayRenderer = null
   }
 
   addEntity(entity) {
@@ -24,6 +25,10 @@ export class Game {
 
   setCollisionHandler(handler) {
     this.onCollision = handler
+  }
+
+  setOverlayRenderer(renderer) {
+    this.overlayRenderer = renderer
   }
 
   start() {
@@ -73,6 +78,10 @@ export class Game {
     // Ground strip
     ctx.fillStyle = '#1b263b'
     ctx.fillRect(0, this.canvas.height - GROUND_HEIGHT, this.canvas.width, GROUND_HEIGHT)
+
+    if (this.overlayRenderer) {
+      this.overlayRenderer(ctx)
+    }
   }
 
   stop() {

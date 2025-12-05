@@ -8,7 +8,7 @@ import { Game } from './game/game.js'
 import { Bird } from './game/bird.js'
 import { PipeSystem } from './game/pipes.js'
 import { loadImages } from './utils/assets.js'
-import { GAME_HEIGHT } from './constants.js'
+import { GAME_HEIGHT, GAME_WIDTH, PIPE_SCORE_OFFSET } from './constants.js'
 
 async function init() {
   const app = document.querySelector('#app')
@@ -21,12 +21,15 @@ async function init() {
     loadImages([pipeSrc]),
   ])
 
+  let score = 0
+
   const bird = new Bird(frames, {
     y: GAME_HEIGHT * 0.35,
   })
 
   const pipes = new PipeSystem(pipeImage[0], {
     scale: 0.96,
+    scoreOffset: PIPE_SCORE_OFFSET,
   })
 
   const game = new Game(canvas)
@@ -40,9 +43,20 @@ async function init() {
     game._prevAPressed = aPressed
   })
   game.setCollisionHandler(() => {
+    const gained = pipes.scoreIfPassed(bird)
+    if (gained > 0) {
+      score += gained
+    }
+
     if (pipes.collidesWith(bird)) {
       game.stop()
     }
+  })
+  game.setOverlayRenderer((ctx) => {
+    ctx.fillStyle = '#e0e6ed'
+    ctx.font = 'bold 18px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(`Score: ${score}`, GAME_WIDTH / 2, 24)
   })
   game.start()
 }

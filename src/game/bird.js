@@ -9,6 +9,8 @@ const DEFAULTS = {
   flapImpulse: -280, // px/s (snappier lift to match gravity)
   rotationFactor: 0.0025, // radians per px/s
   maxRotationDeg: 60,
+  collisionPaddingX: 3,
+  collisionPaddingY: 2,
 }
 
 const degToRad = (deg) => (deg * Math.PI) / 180
@@ -25,6 +27,8 @@ export class Bird {
     this.spriteHeight = frames[0].height
     this.drawWidth = this.spriteWidth * this.scale
     this.drawHeight = this.spriteHeight * this.scale
+    this.collisionPaddingX = options.collisionPaddingX ?? DEFAULTS.collisionPaddingX
+    this.collisionPaddingY = options.collisionPaddingY ?? DEFAULTS.collisionPaddingY
 
     this.x = options.x ?? GAME_WIDTH * 0.3
     this.y = options.y ?? GAME_HEIGHT * 0.4
@@ -95,10 +99,10 @@ export class Bird {
 
   getAABB() {
     return {
-      x: this.x - this._halfW,
-      y: this.y - this._halfH,
-      w: this.drawWidth,
-      h: this.drawHeight,
+      x: this.x - this._halfW + this.collisionPaddingX,
+      y: this.y - this._halfH + this.collisionPaddingY,
+      w: this.drawWidth - this.collisionPaddingX * 2,
+      h: this.drawHeight - this.collisionPaddingY * 2,
     }
   }
 }
