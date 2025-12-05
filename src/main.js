@@ -7,17 +7,15 @@ import messageSrc from './assets/message/message.png'
 import gameOverSrc from './assets/message/gameover.png'
 import bgSrc from './assets/background/background-day.png'
 import baseSrc from './assets/background/base.png'
-import { PLAYER_1, SYSTEM } from '@rcade/plugin-input-classic'
 import { Game } from './game/game.js'
 import { Bird } from './game/bird.js'
 import { PipeSystem } from './game/pipes.js'
 import { Background, Base } from './game/background.js'
 import { loadImage, loadImages } from './utils/assets.js'
-import { GAME_HEIGHT, GAME_WIDTH, PIPE_SCORE_OFFSET, PIPE_SPEED } from './constants.js'
-
-const STATE_START = 'start'
-const STATE_PLAYING = 'playing'
-const STATE_GAME_OVER = 'game_over'
+import { GAME_HEIGHT, PIPE_SCORE_OFFSET, PIPE_SPEED } from './constants.js'
+import { GameState, STATE_PLAYING } from './state/gameState.js'
+import { createInputHandler } from './input/input.js'
+import { renderOverlay } from './ui/overlay.js'
 
 async function init() {
   const app = document.querySelector('#app')
@@ -34,10 +32,6 @@ async function init() {
     loadImage(baseSrc),
   ])
 
-  let gameState = STATE_START
-  let score = 0
-  let best = 0
-
   const bird = new Bird(frames, {
     y: GAME_HEIGHT * 0.35,
   })
@@ -48,128 +42,38 @@ async function init() {
   })
   const background = new Background(bgImage)
   const base = new Base(baseImage, PIPE_SPEED)
-
-  const resetToStart = () => {
-    gameState = STATE_START
-    score = 0
-    pipes.reset()
-    pipes.active = false
-    bird.reset(GAME_HEIGHT * 0.35)
-    bird.setPhysicsEnabled(false)
-    base.setActive(false)
-  }
+  const state = new GameState({ bird, pipes, base })
 
   const game = new Game(canvas)
   game.setBackground(background)
   game.setBase(base)
   game.addEntity(bird)
   game.addEntity(pipes)
-  game.setInputHandler(() => {
-    const aPressed = PLAYER_1.A
-    const startPressed = SYSTEM.ONE_PLAYER
-
-    // Start with A from start screen
-    if (gameState === STATE_START && aPressed && !game._prevAPressed) {
-      startGame()
-    }
-
-    // Restart to start screen with 1P after game over
-    if (gameState === STATE_GAME_OVER && startPressed && !game._prevStartPressed) {
-      resetToStart()
-    }
-
-    // Flap on A during play
-    if (gameState === STATE_PLAYING && aPressed && !game._prevAPressed) {
-      bird.flap()
-    }
-
-    game._prevAPressed = aPressed
-    game._prevStartPressed = startPressed
-  })
+  game.setInputHandler(
+    createInputHandler({
+      state,
+      bird,
+      onStart: () => state.startRun(),
+      onRestart: () => state.resetToStart(),
+    })
+  )
   game.setCollisionHandler(() => {
-    if (gameState !== STATE_PLAYING) return
+    if (state.mode !== STATE_PLAYING) return
 
     const gained = pipes.scoreIfPassed(bird)
-    if (gained > 0) score += gained
+    if (gained > 0) state.score += gained
 
     if (pipes.collidesWith(bird)) {
-      gameOver()
+      state.gameOver()
     }
   })
   game.setOverlayRenderer((ctx) => {
-    if (gameState === STATE_START) {
-      const msgScale = 0.9
-      const w = messageImage.width * msgScale
-      const h = messageImage.height * msgScale
-      const x = (GAME_WIDTH - w) / 2
-      const y = (GAME_HEIGHT - h) / 2 + 6
-      ctx.drawImage(messageImage, x, y, w, h)
-
-      drawTextOutlined(ctx, 'Press A to start', GAME_WIDTH / 2, GAME_HEIGHT - 36, {
-        fill: '#f6f7fb',
-      })
-    } else if (gameState === STATE_PLAYING) {
-      drawTextOutlined(ctx, `Score: ${score}`, GAME_WIDTH / 2, 24, {
-        font: 'bold 18px sans-serif',
-        fill: '#f6f7fb',
-      })
-    } else if (gameState === STATE_GAME_OVER) {
-      const overScale = 0.9
-      const w = gameOverImage.width * overScale
-      const h = gameOverImage.height * overScale
-      const x = (GAME_WIDTH - w) / 2
-      const y = (GAME_HEIGHT - h) / 2 - 22
-      ctx.drawImage(gameOverImage, x, y, w, h)
-
-      drawTextOutlined(ctx, `Score: ${score}`, GAME_WIDTH / 2, y + h + 18, {
-        font: 'bold 18px sans-serif',
-        fill: '#f6f7fb',
-      })
-      drawTextOutlined(ctx, `Best: ${best}`, GAME_WIDTH / 2, y + h + 36, {
-        font: 'bold 14px sans-serif',
-        fill: '#d7deea',
-      })
-      drawTextOutlined(ctx, 'Press 1P to restart', GAME_WIDTH / 2, GAME_HEIGHT - 42, {
-        font: 'bold 16px sans-serif',
-        fill: '#f6f7fb',
-      })
-    }
+    renderOverlay(ctx, { state, messageImage, gameOverImage })
   })
   game.start()
 
   // Initialize to start screen state
-  resetToStart()
-
-  function startGame() {
-    score = 0
-    gameState = STATE_PLAYING
-    pipes.reset()
-    pipes.active = true
-    base.setActive(true)
-    bird.reset(GAME_HEIGHT * 0.35)
-    bird.setPhysicsEnabled(true)
-    bird.flap()
-  }
-
-  function gameOver() {
-    gameState = STATE_GAME_OVER
-    pipes.active = false
-    base.setActive(false)
-    bird.freeze()
-    best = Math.max(best, score)
-  }
-}
-
-function drawTextOutlined(ctx, text, x, y, options = {}) {
-  const { font = 'bold 16px sans-serif', fill = '#f6f7fb', stroke = '#0a0c14', strokeWidth = 3 } =
-    options
-  ctx.font = font
-  ctx.textAlign = 'center'
-  ctx.lineWidth = strokeWidth
-  ctx.strokeStyle = stroke
-  ctx.fillStyle = fill
-  ctx.strokeText(text, x, y)
-  ctx.fillText(text, x, y)
+  state.resetToStart()
 }
 
 init().catch((err) => {
