@@ -51,9 +51,12 @@ export class Bird {
     this.idleBobSpeed = options.idleBobSpeed ?? DEFAULTS.idleBobSpeed
     this.idleBaseY = this.y
     this.idlePhase = 0
+    this.frozen = false
   }
 
   update(dt) {
+    if (this.frozen) return
+
     // Animate wings
     this.frameTimer += dt
     if (this.frameTimer >= this.frameDuration) {
@@ -135,6 +138,12 @@ export class Bird {
     this.physicsEnabled = false
     this.idleBaseY = this.y
     this.idlePhase = 0
+    this.frozen = false
+  }
+
+  freeze() {
+    this.frozen = true
+    this.vy = 0
   }
 }
 
