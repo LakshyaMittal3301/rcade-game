@@ -26,6 +26,7 @@ import wingSrc from './assets/sounds/wing.ogg'
 import pointSrc from './assets/sounds/point.ogg'
 import hitSrc from './assets/sounds/hit.ogg'
 import swooshSrc from './assets/sounds/swoosh.ogg'
+import musicSrc from './assets/music/nyan-cat.ogg'
 import { Game } from './game/game.js'
 import { Bird } from './game/bird.js'
 import { PipeSystem } from './game/pipes.js'
@@ -70,6 +71,14 @@ async function init() {
       loadImage(gameOverSrc),
       loadImage(baseSrc),
     ])
+
+  // Simple background music loop (unrelated to game state)
+  const bgMusic = new Audio(musicSrc)
+  bgMusic.loop = true
+  bgMusic.volume = 0.6
+  bgMusic.play().catch((err) => {
+    console.warn('Background music play failed', err)
+  })
 
   // If you want to test the animated video background, uncomment below and set the background to use it
   // const bgVideo = document.createElement('video')
