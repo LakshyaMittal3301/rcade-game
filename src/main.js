@@ -19,7 +19,8 @@ import pipeGreenSrc from './assets/pipe/pipe-green.png'
 import pipeRedSrc from './assets/pipe/pipe-red.png'
 import messageSrc from './assets/message/message.png'
 import gameOverSrc from './assets/message/gameover.png'
-import bgVideoSrc from './assets/nyan-bg/nyan-bg.mp4'
+// import bgVideoSrc from './assets/nyan-bg/nyan-bg.mp4'
+import bgNightSrc from './assets/background/background-night.png'
 import baseSrc from './assets/background/base.png'
 import wingSrc from './assets/sounds/wing.ogg'
 import pointSrc from './assets/sounds/point.ogg'
@@ -70,12 +71,15 @@ async function init() {
       loadImage(baseSrc),
     ])
 
-  const bgVideo = document.createElement('video')
-  bgVideo.src = bgVideoSrc
-  bgVideo.muted = true
-  bgVideo.loop = true
-  bgVideo.playsInline = true
-  await bgVideo.play().catch(() => {})
+  // If you want to test the animated video background, uncomment below and set the background to use it
+  // const bgVideo = document.createElement('video')
+  // bgVideo.src = bgVideoSrc
+  // bgVideo.muted = true
+  // bgVideo.loop = true
+  // bgVideo.playsInline = true
+  // await bgVideo.play().catch(() => {})
+
+  const bgNight = await loadImage(bgNightSrc)
 
 
   const sounds = new SoundManager({
@@ -99,7 +103,7 @@ async function init() {
     altSprite: pipeRed[0],
     altEvery: 10,
   })
-  const background = new Background(bgVideo)
+  const background = new Background(bgNight)
   const base = new Base(baseImage, PIPE_SPEED)
   const state = new GameState({ bird, pipes, base })
 
