@@ -1,9 +1,9 @@
 {
   "$schema": "https://rcade.dev/manifest.schema.json",
-  "name": "my-sample-game",
-  "display_name": "Sample Game",
-  "description": "Wohoooo",
-  "visibility": "private",
+  "name": "flappy-bird",
+  "display_name": "FlappyBird",
+  "description": "*flaps aggressively*",
+  "visibility": "public",
   "authors": {
     "display_name": "LakshyaMittal3301"
   },

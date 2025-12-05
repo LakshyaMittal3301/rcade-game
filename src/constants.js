@@ -4,7 +4,7 @@ export const GROUND_HEIGHT = 26
 
 // Pipe tuning
 export const PIPE_SPEED = 100 // px/s
-export const PIPE_SPAWN_INTERVAL = 1.6 // seconds
+export const PIPE_SPAWN_INTERVAL = 1.5 // seconds
 // Wider gaps for easier navigation
 export const PIPE_GAP_MIN = 85
 export const PIPE_GAP_MAX = 120

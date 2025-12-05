@@ -1,6 +1,6 @@
-# Sample Game
+# FlappyBird
 
-Wohoooo
+*flaps aggressively*
 
 ## About RCade
 
