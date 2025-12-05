@@ -1,7 +1,7 @@
 import { PLAYER_1, SYSTEM } from '@rcade/plugin-input-classic'
 import { STATE_GAME_OVER, STATE_PLAYING, STATE_START } from '../state/gameState.js'
 
-export function createInputHandler({ state, bird, onStart, onRestart }) {
+export function createInputHandler({ state, bird, onStart, onRestart, onFlap }) {
   let prevA = false
   let prevStart = false
 
@@ -19,6 +19,7 @@ export function createInputHandler({ state, bird, onStart, onRestart }) {
 
     if (state.mode === STATE_PLAYING && aPressed && !prevA) {
       bird.flap()
+      if (onFlap) onFlap()
     }
 
     prevA = aPressed

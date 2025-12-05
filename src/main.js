@@ -7,6 +7,10 @@ import messageSrc from './assets/message/message.png'
 import gameOverSrc from './assets/message/gameover.png'
 import bgSrc from './assets/background/background-day.png'
 import baseSrc from './assets/background/base.png'
+import wingSrc from './assets/sounds/wing.ogg'
+import pointSrc from './assets/sounds/point.ogg'
+import hitSrc from './assets/sounds/hit.ogg'
+import swooshSrc from './assets/sounds/swoosh.ogg'
 import { Game } from './game/game.js'
 import { Bird } from './game/bird.js'
 import { PipeSystem } from './game/pipes.js'
@@ -16,6 +20,7 @@ import { GAME_HEIGHT, PIPE_SCORE_OFFSET, PIPE_SPEED } from './constants.js'
 import { GameState, STATE_PLAYING } from './state/gameState.js'
 import { createInputHandler } from './input/input.js'
 import { renderOverlay } from './ui/overlay.js'
+import { SoundManager } from './audio/soundManager.js'
 
 async function init() {
   const app = document.querySelector('#app')
@@ -31,6 +36,13 @@ async function init() {
     loadImage(bgSrc),
     loadImage(baseSrc),
   ])
+
+  const sounds = new SoundManager({
+    wing: wingSrc,
+    point: pointSrc,
+    hit: hitSrc,
+    swoosh: swooshSrc,
+  })
 
   const bird = new Bird(frames, {
     y: GAME_HEIGHT * 0.35,
@@ -54,16 +66,24 @@ async function init() {
       state,
       bird,
       onStart: () => state.startRun(),
-      onRestart: () => state.resetToStart(),
+      onRestart: () => {
+        sounds.play('swoosh')
+        state.resetToStart()
+      },
+      onFlap: () => sounds.play('wing'),
     })
   )
   game.setCollisionHandler(() => {
     if (state.mode !== STATE_PLAYING) return
 
     const gained = pipes.scoreIfPassed(bird)
-    if (gained > 0) state.score += gained
+    if (gained > 0) {
+      state.score += gained
+      sounds.play('point')
+    }
 
     if (pipes.collidesWith(bird)) {
+      sounds.play('hit')
       state.gameOver()
     }
   })
