@@ -26,7 +26,7 @@ async function init() {
   })
 
   const pipes = new PipeSystem(pipeImage[0], {
-    scale: 1.2,
+    scale: 0.96,
   })
 
   const game = new Game(canvas)

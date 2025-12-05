@@ -4,9 +4,9 @@ const DEFAULTS = {
   frameDuration: 0.12,
   bobAmplitude: 0,
   bobSpeed: 0,
-  scale: 1.2,
-  gravity: 520, // px/s^2
-  flapImpulse: -230, // px/s
+  scale: 0.86, // ~10% smaller than previous
+  gravity: 750, // px/s^2 (heavier fall)
+  flapImpulse: -280, // px/s (snappier lift to match gravity)
   rotationFactor: 0.0025, // radians per px/s
   maxRotationDeg: 60,
 }
